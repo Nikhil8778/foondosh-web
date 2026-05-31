@@ -4,10 +4,150 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  PARTNER
+  DRIVER
+}
+
+enum PartnerType {
+  RESTAURANT
+  PHARMACY
+  GROCERY
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY_FOR_PICKUP
+  ASSIGNED_TO_DRIVER
+  PICKED_UP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  COD
+  UPI
+  CARD
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  phone     String   @unique
+  email     String?
+  role      UserRole @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders    Order[]
+}
+
+model Partner {
+  id        String      @id @default(cuid())
+  name      String
+  type      PartnerType
+  phone     String
+  email     String?
+  address   String
+  city      String
+  latitude  Float?
+  longitude Float?
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  bannerImage String?
+  logoImage   String?
+  rating      Float? @default(4.5)
+
+  products  Product[]
+  orders    Order[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  partnerId   String
+  name        String
+  description String?
+  category    String?
+  priceCents  Int
+  imageUrl    String?
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  partner     Partner @relation(fields: [partnerId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model Driver {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String   @unique
+  vehicleType String?
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders      Order[]
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique
+  customerId      String
+  partnerId       String
+  driverId        String?
+
+  status          OrderStatus   @default(PENDING)
+  paymentMethod   PaymentMethod @default(COD)
+  paymentStatus   PaymentStatus @default(PENDING)
+
+  subtotalCents   Int
+  deliveryCents   Int
+  taxCents        Int           @default(0)
+  totalCents      Int
+
+  deliveryAddress String
+  customerPhone   String
+  notes           String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  customer        User          @relation(fields: [customerId], references: [id])
+  partner         Partner       @relation(fields: [partnerId], references: [id])
+  driver          Driver?       @relation(fields: [driverId], references: [id])
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id         String @id @default(cuid())
+  orderId    String
+  productId  String
+  quantity   Int
+  priceCents Int
+
+  order      Order   @relation(fields: [orderId], references: [id])
+  product    Product @relation(fields: [productId], references: [id])
 }
