@@ -1,21 +1,13 @@
 "use client";
 
-export default function AddToCartButton({ item }: { item: any }) {
-  async function addToCart() {
-    await fetch("/api/cart", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(item),
-    });
+import { useCartStore } from "@/lib/cart-store";
 
-    alert("Added to cart");
-  }
+export default function AddToCartButton({ item }: { item: any }) {
+  const addItem = useCartStore((state) => state.addItem);
 
   return (
     <button
-      onClick={addToCart}
+      onClick={() => addItem(item)}
       className="bg-black text-white px-5 py-2 rounded-full h-fit"
     >
       Add

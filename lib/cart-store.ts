@@ -1,21 +1,63 @@
-export let cart: any[] = [];
+import { create } from "zustand";
+
+export type CartItem = {
+  id: string;
+  partnerId: string;
+  name: string;
+  description?: string | null;
+  priceCents: number;
+  quantity: number;
+};
+
+type CartStore = {
+  items: CartItem[];
+  addItem: (item: Omit<CartItem, "quantity">) => void;
+  clearCart: () => void;
+};
+
+export const useCartStore = create<CartStore>()((set) => ({
+  items: [],
+
+  addItem: (item) =>
+    set((state) => {
+      const existing = state.items.find((x) => x.id === item.id);
+
+      if (existing) {
+        return {
+          items: state.items.map((x) =>
+            x.id === item.id ? { ...x, quantity: x.quantity + 1 } : x
+          ),
+        };
+      }
+
+      return {
+        items: [...state.items, { ...item, quantity: 1 }],
+      };
+    }),
+
+  clearCart: () => set({ items: [] }),
+}));
+
+let serverCart: CartItem[] = [];
 
 export function getCart() {
-  return cart;
+  return serverCart;
 }
 
-export function addToCart(item: any) {
-  const existing = cart.find((x) => x.id === item.id);
+export function addToCart(item: Omit<CartItem, "quantity">) {
+  const existing = serverCart.find((x) => x.id === item.id);
 
   if (existing) {
-    existing.quantity += 1;
+    serverCart = serverCart.map((x) =>
+      x.id === item.id ? { ...x, quantity: x.quantity + 1 } : x
+    );
   } else {
-    cart.push({ ...item, quantity: 1 });
+    serverCart.push({ ...item, quantity: 1 });
   }
 
-  return cart;
+  return serverCart;
 }
 
 export function clearCart() {
-  cart = [];
+  serverCart = [];
 }
