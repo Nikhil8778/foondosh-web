@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Header from "@/components/Header";
 import Link from "next/link";
 import { useCartStore } from "@/lib/cart-store";
 
 export default function CartPage() {
+  const [tipCents, setTipCents] = useState(0);
+
   const items = useCartStore((state) => state.items);
   const increaseItem = useCartStore((state) => state.increaseItem);
   const decreaseItem = useCartStore((state) => state.decreaseItem);
@@ -16,9 +19,10 @@ export default function CartPage() {
     0
   );
 
-  const deliveryFee = items.length > 0 ? 3000 : 0;
-  const tax = Math.round(subtotal * 0.05);
-  const total = subtotal + deliveryFee + tax;
+  const deliveryPartnerFee = items.length > 0 ? 3000 : 0;
+  const platformFee = items.length > 0 ? 1490 : 0;
+  const gstTaxes = Math.round((subtotal + platformFee) * 0.05);
+  const total = subtotal + deliveryPartnerFee + platformFee + gstTaxes + tipCents;
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -42,6 +46,7 @@ export default function CartPage() {
           {items.length === 0 ? (
             <div>
               <p className="text-gray-500">Your cart is empty.</p>
+
               <Link
                 href="/restaurants"
                 className="inline-block mt-6 bg-black text-white px-6 py-3 rounded-full"
@@ -97,25 +102,73 @@ export default function CartPage() {
                 ))}
               </div>
 
-              <div className="mt-6 space-y-3 text-gray-700">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>₹{(subtotal / 100).toFixed(0)}</span>
-                </div>
+              <div className="mt-6 bg-gray-50 rounded-2xl p-5">
+                <h2 className="text-xl font-bold mb-4">Bill Summary</h2>
 
-                <div className="flex justify-between">
-                  <span>Delivery Fee</span>
-                  <span>₹{(deliveryFee / 100).toFixed(0)}</span>
-                </div>
+                <div className="space-y-3 text-gray-700">
+                  <div className="flex justify-between">
+                    <span>Item Total</span>
+                    <span>₹{(subtotal / 100).toFixed(0)}</span>
+                  </div>
 
-                <div className="flex justify-between">
-                  <span>Taxes</span>
-                  <span>₹{(tax / 100).toFixed(0)}</span>
-                </div>
+                  <div className="flex justify-between">
+                    <span>Delivery Partner Fee</span>
+                    <span>₹{(deliveryPartnerFee / 100).toFixed(0)}</span>
+                  </div>
 
-                <div className="border-t pt-4 flex justify-between text-xl font-bold">
-                  <span>Total</span>
-                  <span>₹{(total / 100).toFixed(0)}</span>
+                  <div className="flex justify-between">
+                    <span>Platform Fee</span>
+                    <span>₹{(platformFee / 100).toFixed(2)}</span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span>GST (govt. taxes)</span>
+                    <span>₹{(gstTaxes / 100).toFixed(2)}</span>
+                  </div>
+
+                  {tipCents > 0 && (
+                    <div className="flex justify-between">
+                      <span>Delivery Partner Tip</span>
+                      <span>₹{(tipCents / 100).toFixed(0)}</span>
+                    </div>
+                  )}
+
+                  <div className="border-t pt-4 flex justify-between text-xl font-bold">
+                    <span>To Pay</span>
+                    <span>₹{(total / 100).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 bg-orange-50 rounded-2xl p-5">
+                <h2 className="text-lg font-bold">🙏 Tip your delivery partner</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  The full tip will be sent to the delivery partner after delivery.
+                </p>
+
+                <div className="grid grid-cols-4 gap-3 mt-4">
+                  {[2000, 3000, 5000].map((tip) => (
+                    <button
+                      key={tip}
+                      onClick={() => setTipCents(tip)}
+                      className={`rounded-xl border py-3 font-semibold ${
+                        tipCents === tip
+                          ? "bg-green-600 text-white"
+                          : "bg-white"
+                      }`}
+                    >
+                      ₹{tip / 100}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => setTipCents(0)}
+                    className={`rounded-xl border py-3 font-semibold ${
+                      tipCents === 0 ? "bg-green-600 text-white" : "bg-white"
+                    }`}
+                  >
+                    No Tip
+                  </button>
                 </div>
               </div>
 
@@ -123,7 +176,7 @@ export default function CartPage() {
                 href="/checkout"
                 className="block text-center mt-8 bg-green-600 hover:bg-green-700 transition-all text-white rounded-full py-4 font-semibold"
               >
-                Proceed to Payment → ₹{(total / 100).toFixed(0)}
+                Proceed to Payment → ₹{(total / 100).toFixed(2)}
               </Link>
             </>
           )}
