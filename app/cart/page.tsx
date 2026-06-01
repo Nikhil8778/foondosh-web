@@ -6,6 +6,10 @@ import { useCartStore } from "@/lib/cart-store";
 
 export default function CartPage() {
   const items = useCartStore((state) => state.items);
+  const increaseItem = useCartStore((state) => state.increaseItem);
+  const decreaseItem = useCartStore((state) => state.decreaseItem);
+  const removeItem = useCartStore((state) => state.removeItem);
+  const clearCart = useCartStore((state) => state.clearCart);
 
   const subtotal = items.reduce(
     (sum, item) => sum + item.priceCents * item.quantity,
@@ -22,7 +26,18 @@ export default function CartPage() {
 
       <section className="max-w-3xl mx-auto p-6 mt-8">
         <div className="bg-white rounded-3xl shadow p-8">
-          <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold">Your Cart</h1>
+
+            {items.length > 0 && (
+              <button
+                onClick={clearCart}
+                className="text-sm text-red-600 font-semibold"
+              >
+                Clear Cart
+              </button>
+            )}
+          </div>
 
           {items.length === 0 ? (
             <div>
@@ -38,18 +53,46 @@ export default function CartPage() {
             <>
               <div className="space-y-5">
                 {items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex justify-between border-b pb-4"
-                  >
-                    <div>
-                      <h2 className="font-bold">{item.name}</h2>
-                      <p className="text-gray-500">Qty: {item.quantity}</p>
+                  <div key={item.id} className="border-b pb-5">
+                    <div className="flex justify-between gap-4">
+                      <div>
+                        <h2 className="font-bold">{item.name}</h2>
+                        <p className="text-gray-500 text-sm">
+                          ₹{(item.priceCents / 100).toFixed(0)} each
+                        </p>
+                      </div>
+
+                      <p className="font-semibold">
+                        ₹{((item.priceCents * item.quantity) / 100).toFixed(0)}
+                      </p>
                     </div>
 
-                    <p className="font-semibold">
-                      ₹{((item.priceCents * item.quantity) / 100).toFixed(0)}
-                    </p>
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => decreaseItem(item.id)}
+                          className="w-8 h-8 rounded-full bg-gray-100 font-bold"
+                        >
+                          -
+                        </button>
+
+                        <span className="font-semibold">{item.quantity}</span>
+
+                        <button
+                          onClick={() => increaseItem(item.id)}
+                          className="w-8 h-8 rounded-full bg-gray-100 font-bold"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => removeItem(item.id)}
+                        className="text-sm text-red-600 font-semibold"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -77,11 +120,11 @@ export default function CartPage() {
               </div>
 
               <Link
-              href="/checkout"
-              className="block text-center mt-8 bg-green-600 hover:bg-green-700 transition-all text-white rounded-full py-4 font-semibold"
-            >
-              Proceed to Payment → ₹{(total / 100).toFixed(0)}
-            </Link>
+                href="/checkout"
+                className="block text-center mt-8 bg-green-600 hover:bg-green-700 transition-all text-white rounded-full py-4 font-semibold"
+              >
+                Proceed to Payment → ₹{(total / 100).toFixed(0)}
+              </Link>
             </>
           )}
         </div>
