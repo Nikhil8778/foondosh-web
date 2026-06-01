@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
+import { useCartStore } from "@/lib/cart-store";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -13,6 +14,8 @@ export default function CheckoutPage() {
   const [landmark, setLandmark] = useState("");
   const [instructions, setInstructions] = useState("");
   const [loading, setLoading] = useState(false);
+  const items = useCartStore((state) => state.items);
+  const clearCart = useCartStore((state) => state.clearCart);
 
   async function placeOrder() {
     if (!name || !phone || !address) {
@@ -27,20 +30,22 @@ export default function CheckoutPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        name,
-        phone,
-        address: `${address}${landmark ? `, Landmark: ${landmark}` : ""}${
-          instructions ? `, Instructions: ${instructions}` : ""
-        }`,
-      }),
+     body: JSON.stringify({
+      name,
+      phone,
+      address: `${address}${landmark ? `, Landmark: ${landmark}` : ""}${
+        instructions ? `, Instructions: ${instructions}` : ""
+      }`,
+      items,
+    }),
     });
 
     const data = await res.json();
 
     setLoading(false);
 
-    if (res.ok) {
+   if (res.ok) {
+      clearCart();
       router.push(`/order-success?order=${data.orderNumber}`);
     } else {
       alert(data.error || "Something went wrong");

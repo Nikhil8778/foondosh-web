@@ -1,11 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { getCart, clearCart } from "@/lib/cart-store";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const cart = getCart();
+    const cart = body.items || [];
 
     if (!cart.length) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
@@ -14,12 +13,13 @@ export async function POST(req: Request) {
     const partnerId = cart[0].partnerId;
 
     const subtotalCents = cart.reduce(
-      (sum, item) => sum + item.priceCents * item.quantity,
+      (sum: number, item: any) => sum + item.priceCents * item.quantity,
       0
     );
 
     const deliveryCents = 3000;
-    const totalCents = subtotalCents + deliveryCents;
+    const taxCents = Math.round(subtotalCents * 0.05);
+    const totalCents = subtotalCents + deliveryCents + taxCents;
 
     const customer = await prisma.user.upsert({
       where: { phone: body.phone },
@@ -40,13 +40,13 @@ export async function POST(req: Request) {
         deliveryAddress: body.address,
         subtotalCents,
         deliveryCents,
-        taxCents: 0,
+        taxCents,
         totalCents,
         paymentMethod: "COD",
         paymentStatus: "PENDING",
         status: "PENDING",
         items: {
-          create: cart.map((item) => ({
+          create: cart.map((item: any) => ({
             productId: item.id,
             quantity: item.quantity,
             priceCents: item.priceCents,
@@ -54,8 +54,6 @@ export async function POST(req: Request) {
         },
       },
     });
-
-    clearCart();
 
     return NextResponse.json(order);
   } catch (error: any) {
