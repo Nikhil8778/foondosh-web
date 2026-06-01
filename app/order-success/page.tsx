@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import Link from "next/link";
 
 export default function OrderSuccessPage() {
   return (
@@ -12,19 +13,22 @@ export default function OrderSuccessPage() {
           <h1 className="text-3xl font-bold">Order Confirmed</h1>
 
           <p className="text-gray-500 mt-3">
-            Thank you! Your order has been received successfully.
+            Your payment was successful and your order has been confirmed.
           </p>
 
           <div className="mt-8 text-left bg-gray-50 rounded-2xl p-5 space-y-3">
-            <p><b>Status:</b> Payment Successful</p>
             <p><b>Order Status:</b> Confirmed</p>
-            <p><b>Estimated Delivery:</b> 25–40 minutes</p>
             <p><b>Restaurant:</b> Village Tandoori</p>
+            <p><b>Estimated Delivery:</b> 25–40 minutes</p>
+            <p><b>Payment:</b> Successful</p>
           </div>
 
-          <p className="text-sm text-gray-500 mt-6">
-            You will receive updates when the restaurant accepts and prepares your order.
-          </p>
+          <Link
+            href="/restaurants"
+            className="inline-block mt-8 bg-black text-white px-6 py-3 rounded-full"
+          >
+            Order More
+          </Link>
         </div>
       </section>
     </main>

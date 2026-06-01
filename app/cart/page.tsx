@@ -77,11 +77,11 @@ export default function CartPage() {
               </div>
 
               <Link
-                href="/checkout"
-                className="block text-center mt-8 bg-black text-white rounded-full py-4 font-semibold"
-              >
-                Proceed to Checkout
-              </Link>
+              href="/checkout"
+              className="block text-center mt-8 bg-green-600 hover:bg-green-700 transition-all text-white rounded-full py-4 font-semibold"
+            >
+              Proceed to Payment → ₹{(total / 100).toFixed(0)}
+            </Link>
             </>
           )}
         </div>
